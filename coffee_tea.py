@@ -62,77 +62,65 @@ def getDataFromFile(path):
 
 
 # Евклидовое расстояние
-def calculateDistance(row1, row2, length):
+def calculateEuclidDistance(row1, row2, length):
 	distance = 0
-  # Дистанция в квадрате
+
 	for x in range(length):
 		distance += pow((row1[x] - row2[x]), 2)
-  # Расстояние между величинами
+
 	return math.sqrt(distance)
 
 # Наиболее подходящие соседи
 def calculateSimilarNeighbors(trainingSet, testRow, k):
-  # Все расстояния
 	distances = []
-  # Указание количества полей для анализа
 	length = len(testRow)-1
-  # Расстояние до рассматриваемой строки внутри набора
+
 	for x in range(len(trainingSet)):
-		distance = calculateDistance(testRow, trainingSet[x], length)
+		distance = calculateEuclidDistance(testRow, trainingSet[x], length)
 		distances.append((trainingSet[x], distance))
-  # k наиболее ближайших соседей
+
 	distances.sort(key=operator.itemgetter(1))
 	neighbors = []
+
 	for x in range(k):
 		neighbors.append(distances[x][0])
 	return neighbors
 
-# Прогноз на основании соседей
 def calculateResult(neighbors):
 	classCount = {}
-  # Расчет количества k-соседей в каждом классе
+
 	for x in range(len(neighbors)):
 		response = neighbors[x][-1]
 		if response in classCount:
 			classCount[response] += 1
 		else:
 			classCount[response] = 1
-  # Вывод класса с наибольшим кол-вом k-соседей
+
 	sortedVotes = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
 	return sortedVotes[0][0]
 
-# Импорт данных из табилцы
 dataSet = getDataFromFile('dataset3.xlsx')
 
-# Процент записей обучающего множества
 split = 0.8
 
 trainingSetCount = round(len(dataSet.index) * 0.8)
 testSetCount = len(dataSet.index) - trainingSetCount
 
-# Преобразование обучающего множества в массив
 trainingSet = pd.DataFrame(dataSet,
                   columns=['wakeUp', 'sleepHours', 'employedSet', 'districtSet', 'whatParentsDrinkSet', 'genderSet', 'programmingLanguageSet', 'whatTheyDrink']).head(trainingSetCount)
-# Преобразование тестового множества в массив
 testSet = pd.DataFrame(dataSet,
                   columns=['wakeUp', 'sleepHours', 'employedSet', 'districtSet', 'whatParentsDrinkSet', 'genderSet', 'programmingLanguageSet', 'whatTheyDrink']).tail(testSetCount)
 
-# Вывод массивов
 print ('Train set:')
 print (trainingSet)
-# Массив результатов
-predictions=[]
 
-# К соседей - параметр
+predictions=[]
 k = 3
 
-# Обучение и проверка на тестовом множестве
 for x in range(0,len(testSet)):
   neighbors = calculateSimilarNeighbors(trainingSet.to_numpy(), testSet.to_numpy()[x], k)
   result = calculateResult(neighbors)
   predictions.append(result)
-  #testSet[x]['perdictDrink'] = result
-  #print(f'Предсказанное= {result}, Реальное={testSet.to_numpy()[x][-1]}')
 
 testSet = testSet.reset_index()
 
