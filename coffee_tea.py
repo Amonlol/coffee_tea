@@ -1,7 +1,15 @@
+#py -m pip install pandas
+#py -m pip install numpy
 import math
 import operator 
 import pandas as pd
 import numpy as np
+
+#region Глобальные переменные
+split = 0.8
+predictions=[]
+k = 3
+#endregion
 
 # Импорт из Excel
 def getDataFromFile(path):
@@ -59,8 +67,6 @@ def getDataFromFile(path):
   
   return dataSet
 
-
-
 # Евклидовое расстояние
 def calculateEuclidDistance(row1, row2, length):
 	distance = 0
@@ -101,8 +107,6 @@ def calculateResult(neighbors):
 
 dataSet = getDataFromFile('dataset3.xlsx')
 
-split = 0.8
-
 trainingSetCount = round(len(dataSet.index) * 0.8)
 testSetCount = len(dataSet.index) - trainingSetCount
 
@@ -113,9 +117,6 @@ testSet = pd.DataFrame(dataSet,
 
 print ('Train set:')
 print (trainingSet)
-
-predictions=[]
-k = 3
 
 for x in range(0,len(testSet)):
   neighbors = calculateSimilarNeighbors(trainingSet.to_numpy(), testSet.to_numpy()[x], k)
