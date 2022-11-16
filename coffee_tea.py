@@ -4,62 +4,56 @@ import pandas as pd
 import numpy as np
 
 # Импорт из Excel
-def importData(path):
+def getDataFromFile(path):
   dataSet = pd.read_excel(path)
   # Переименовать столбцы
   dataSet = dataSet.rename(columns={
-        'имя':'name',
-        'во сколько встает' : 'wakeUpTime',
-        'средний сон' :'AvgSleepHours',
-        'работа' :'isWorking',
-        'округ' :'region',
-        'что родители' : 'parentsDrink',
-        'пол' : 'sex',
-        'яп' : 'progLang',
-        'пьет' : 'factDrink',})
+              'имя':'secondName',
+              'во сколько встает' : 'wakeUp',
+              'средний сон' :'sleepHours',
+              'работа' :'employedSet',
+              'округ' :'district',
+              'что родители' : 'whatParentsDrink',
+              'пол' : 'gender',
+              'яп' : 'programmingLanguage',
+              'пьет' : 'whatTheyDrink',})
   
-  # Нормализация
-  dataSet['isWorking'] = dataSet['isWorking']*10
-  
-  # Нумерация округов
-  dataSet['regionNum'] = dataSet.apply(lambda row: 
-                        0 if row['region'] == 'ЗАО'
-                           else (1 if row['region'] == 'СЗАО'
-                           else (2 if row['region'] == 'САО'
-                           else (3 if row['region'] == 'СВАО'
-                           else (5 if row['region'] == 'ВАО'
-                           else (6 if row['region'] == 'ЮВАО'
-                           else (7 if row['region'] == 'ЮАО'
-                           else (8 if row['region'] == 'ЮЗАО'
-                                 else (9 if row['region'] == 'ЦАО' 
-                                       else 10) # NAN if no conditions matched
-                           )))))))
-                       , axis=1)
-  # Нумерация напитков
-  dataSet['parentsDrinkNum'] = dataSet.apply(lambda row: 
-                       5 if row['parentsDrink'] == 'кофе'
-                                 else (10 if row['parentsDrink'] == 'чай' 
-                                       else 0) # NAN if no conditions matched 
-                       , axis=1)
 
-  # Нумерация полов
-  dataSet['sexNum'] = dataSet.apply(lambda row: 
-                        5 if row['sex'] == 'мужской'
-                                 else (10 if row['sex'] == 'женский' 
-                                       else 0) # NAN if no conditions matched 
+  dataSet['employedSet'] = dataSet['employedSet']*10
+  dataSet['districtSet'] = dataSet.apply(lambda row: 
+                        0 if row['district'] == 'ЗАО'
+                          else (1 if row['district'] == 'СЗАО'
+                          else (2 if row['district'] == 'САО'
+                          else (3 if row['district'] == 'СВАО'
+                          else (5 if row['district'] == 'ВАО'
+                          else (6 if row['district'] == 'ЮВАО'
+                          else (7 if row['district'] == 'ЮАО'
+                          else (8 if row['district'] == 'ЮЗАО'
+                          else (9 if row['district'] == 'ЦАО' 
+                          else 10)
+                          )))))))
                        , axis=1)
-  # Нумерация ЯП
-  dataSet['progLangNum'] = dataSet.apply(lambda row: 
-                        0 if row['progLang'] == 'питон'
-                           else (1 if row['progLang'] == 'свифт'
-                           else (2 if row['progLang'] == 'котлин'
-                           else (3 if row['progLang'] == 'джава'
-                           else (4 if row['progLang'] == 'шарп'
-                           else (5 if row['progLang'] == 'с++'
-                           else (6 if row['progLang'] == 'дс'
-                           else (7 if row['progLang'] == 'луа'
-                                 else (8 if row['progLang'] == 'скл' 
-                                       else 9) # NAN if no conditions matched
+  dataSet['whatParentsDrinkSet'] = dataSet.apply(lambda row: 
+                       5 if row['whatParentsDrink'] == 'кофе'
+                         else (10 if row['whatParentsDrink'] == 'чай' 
+                         else 0) 
+                       , axis=1)
+  dataSet['genderSet'] = dataSet.apply(lambda row: 
+                        5 if row['gender'] == 'мужской'
+                          else (10 if row['gender'] == 'женский' 
+                          else 0) 
+                       , axis=1)
+  dataSet['programmingLanguageSet'] = dataSet.apply(lambda row: 
+                        0 if row['programmingLanguage'] == 'питон'
+                           else (1 if row['programmingLanguage'] == 'свифт'
+                           else (2 if row['programmingLanguage'] == 'котлин'
+                           else (3 if row['programmingLanguage'] == 'джава'
+                           else (4 if row['programmingLanguage'] == 'шарп'
+                           else (5 if row['programmingLanguage'] == 'с++'
+                           else (6 if row['programmingLanguage'] == 'дс'
+                           else (7 if row['programmingLanguage'] == 'луа'
+                           else (8 if row['programmingLanguage'] == 'скл' 
+                           else 9)
                            )))))))
                        , axis=1)  
   
@@ -67,26 +61,26 @@ def importData(path):
 
 
 
-# Расчет евклидова расстояния между числовыми значениями
-def getDistance(row1, row2, length):
+# Евклидовое расстояние
+def calculateDistance(row1, row2, length):
 	distance = 0
-  # Для каждого поля посчитать дистанцию^2
+  # Дистанция в квадрате
 	for x in range(length):
 		distance += pow((row1[x] - row2[x]), 2)
-  # Вернуть расстояние (корень) между многомерными величинами
+  # Расстояние между величинами
 	return math.sqrt(distance)
 
-# Возвращает k наиболее подходящих соседей
-def getNeighbors(trainingSet, testRow, k):
+# Наиболее подходящие соседи
+def calculateSimilarNeighbors(trainingSet, testRow, k):
   # Все расстояния
 	distances = []
-  # Количество полей для анализа
+  # Указание количества полей для анализа
 	length = len(testRow)-1
-  # Для каждого элемента в тестовом наборе вычислить расстояние до рассматриваемой строки
+  # Расстояние до рассматриваемой строки внутри набора
 	for x in range(len(trainingSet)):
-		distance = getDistance(testRow, trainingSet[x], length)
+		distance = calculateDistance(testRow, trainingSet[x], length)
 		distances.append((trainingSet[x], distance))
-  # Вычислить k наиболее ближайших соседей
+  # k наиболее ближайших соседей
 	distances.sort(key=operator.itemgetter(1))
 	neighbors = []
 	for x in range(k):
@@ -94,7 +88,7 @@ def getNeighbors(trainingSet, testRow, k):
 	return neighbors
 
 # Прогноз на основании соседей
-def getResponse(neighbors):
+def calculateResult(neighbors):
 	classCount = {}
   # Расчет количества k-соседей в каждом классе
 	for x in range(len(neighbors)):
@@ -108,7 +102,7 @@ def getResponse(neighbors):
 	return sortedVotes[0][0]
 
 # Импорт данных из табилцы
-dataSet = importData('dataset3.xlsx')
+dataSet = getDataFromFile('dataset3.xlsx')
 
 # Процент записей обучающего множества
 split = 0.8
@@ -118,16 +112,14 @@ testSetCount = len(dataSet.index) - trainingSetCount
 
 # Преобразование обучающего множества в массив
 trainingSet = pd.DataFrame(dataSet,
-                  columns=['wakeUpTime', 'AvgSleepHours', 'isWorking', 'regionNum', 'parentsDrinkNum', 'sexNum', 'progLangNum', 'factDrink']).head(trainingSetCount)
+                  columns=['wakeUp', 'sleepHours', 'employedSet', 'districtSet', 'whatParentsDrinkSet', 'genderSet', 'programmingLanguageSet', 'whatTheyDrink']).head(trainingSetCount)
 # Преобразование тестового множества в массив
 testSet = pd.DataFrame(dataSet,
-                  columns=['wakeUpTime', 'AvgSleepHours', 'isWorking', 'regionNum', 'parentsDrinkNum', 'sexNum', 'progLangNum', 'factDrink']).tail(testSetCount)
+                  columns=['wakeUp', 'sleepHours', 'employedSet', 'districtSet', 'whatParentsDrinkSet', 'genderSet', 'programmingLanguageSet', 'whatTheyDrink']).tail(testSetCount)
 
 # Вывод массивов
 print ('Train set:')
 print (trainingSet)
-#print ('Test set:')
-#print (testSet)
 # Массив результатов
 predictions=[]
 
@@ -136,8 +128,8 @@ k = 3
 
 # Обучение и проверка на тестовом множестве
 for x in range(0,len(testSet)):
-  neighbors = getNeighbors(trainingSet.to_numpy(), testSet.to_numpy()[x], k)
-  result = getResponse(neighbors)
+  neighbors = calculateSimilarNeighbors(trainingSet.to_numpy(), testSet.to_numpy()[x], k)
+  result = calculateResult(neighbors)
   predictions.append(result)
   #testSet[x]['perdictDrink'] = result
   #print(f'Предсказанное= {result}, Реальное={testSet.to_numpy()[x][-1]}')
